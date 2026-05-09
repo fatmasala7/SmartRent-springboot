@@ -434,6 +434,3 @@ The following diagram files are included in `docs/diagrams`:
 - `erd.png`
 - `class-diagram-ocl.png`
 
-Original uploaded PDF/JPEG sources are preserved under:
-
-- `docs/diagrams/originals/`
