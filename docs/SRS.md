@@ -2,7 +2,6 @@
 
 **Project:** Livora Property Rental Platform  
 **Course:** Software Engineering 2  
-**Version:** 1.1  
 **Architecture:** React Frontend + Spring Boot Microservices + Spring Cloud Gateway + Eureka + Kafka + MySQL + Docker  
 
 > Note: some internal folders/classes may still use the legacy project name `SmartRent`, but the user-facing platform name is **Livora**.
