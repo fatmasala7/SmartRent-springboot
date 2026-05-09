@@ -1,0 +1,32 @@
+:root {
+  --color-bg: #f7f3f0;
+  --color-surface: #ffffff;
+  --color-border: #d8ccc5;
+  --color-text: #716458;
+  --color-heading: #4f463e;
+  --color-primary: #805774;
+  --color-primary-hover: #6e4964;
+  --color-secondary: #76a0b3;
+  --color-secondary-hover: #417c9c;
+  --color-link: #417c9c;
+  --color-success-bg: #eef5f7;
+  --color-success-text: #417c9c;
+  --font-family-base: Arial, "Segoe UI", sans-serif;
+  --font-family-heading: system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: ui-monospace, Consolas, monospace;
+  --shadow-sm: 0 4px 10px rgba(113, 100, 88, 0.07);
+  --shadow-md: 0 8px 22px rgba(113, 100, 88, 0.1);
+  --shadow-lg: 0 16px 40px rgba(113, 100, 88, 0.14);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --container-width: 1120px;
+
+  --pastel-gray: #d8ccc5;
+  --boy-red: #716458;
+  --blackberry: #805774;
+  --weldon-blue: #76a0b3;
+  --jellybean-blue: #417c9c;
+  --text-dark: #2b2b2b;
+  --text-light: #ffffff;
+}

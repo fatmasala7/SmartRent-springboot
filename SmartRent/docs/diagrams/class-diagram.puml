@@ -1,0 +1,145 @@
+@startuml SmartRent-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+enum Role {
+  Admin
+  Landlord
+  Tenant
+}
+
+enum RentalStatus {
+  Available
+  Rented
+  Pending
+}
+
+enum AppStatus {
+  Pending
+  Accepted
+  Rejected
+}
+
+class User {
+  +userID: Integer
+  +fullName: String
+  +email: String
+  +phoneNumber: String
+  +password: String
+  +role: Role
+  +isApproved: Boolean
+  +isActive: Boolean
+  +profileImage: String
+  +nationalOrPassportID: String
+  +createdAt: LocalDateTime
+}
+
+class Property {
+  +propertyID: Integer
+  +landlordID: Integer
+  +approvedByAdminID: Integer
+  +title: String
+  +description: String
+  +price: BigDecimal
+  +location: String
+  +propertyType: String
+  +rentalStatus: RentalStatus
+  +isApproved: Boolean
+  +isActive: Boolean
+  +createdAt: LocalDateTime
+  +updatedAt: LocalDateTime
+}
+
+class PropertyImage {
+  +imageID: Integer
+  +imageUrl: String
+  +isMain: Boolean
+}
+
+class Amenity {
+  +amenityID: Integer
+  +amenityName: String
+}
+
+class VisitRequest {
+  +requestID: Integer
+  +propertyID: Integer
+  +tenantID: Integer
+  +requestedDate: LocalDateTime
+  +message: String
+  +status: AppStatus
+  +createdAt: LocalDateTime
+}
+
+class RentalApplication {
+  +applicationID: Integer
+  +propertyID: Integer
+  +tenantID: Integer
+  +startDate: LocalDate
+  +endDate: LocalDate
+  +status: AppStatus
+  +createdAt: LocalDateTime
+}
+
+class ApplicationDocument {
+  +documentID: Integer
+  +documentType: String
+  +documentUrl: String
+}
+
+class Rental {
+  +rentalID: Integer
+  +applicationID: Integer
+  +rentStartDate: LocalDate
+  +rentEndDate: LocalDate
+  +finalPrice: BigDecimal
+  +createdAt: LocalDateTime
+}
+
+class Favorite {
+  +favoriteID: Integer
+  +tenantID: Integer
+  +propertyID: Integer
+  +createdAt: LocalDateTime
+}
+
+class Review {
+  +reviewID: Integer
+  +propertyID: Integer
+  +tenantID: Integer
+  +rentalID: Integer
+  +rating: Integer
+  +comment: String
+  +createdAt: LocalDateTime
+}
+
+class Notification {
+  +notificationID: Integer
+  +userID: Integer
+  +relatedID: Integer
+  +type: String
+  +title: String
+  +message: String
+  +isRead: Boolean
+  +createdAt: LocalDateTime
+}
+
+' Relationships
+User "1" -- "0..*" Property       : landlordID
+User "1" -- "0..*" VisitRequest   : tenantID
+User "1" -- "0..*" RentalApplication : tenantID
+User "1" -- "0..*" Favorite       : tenantID
+User "1" -- "0..*" Review         : tenantID
+User "1" -- "0..*" Notification   : userID
+
+Property "1" -- "0..*" PropertyImage : has
+Property "0..*" -- "0..*" Amenity   : PropertyAmenities
+Property "1" -- "0..*" VisitRequest : propertyID
+Property "1" -- "0..*" RentalApplication : propertyID
+Property "1" -- "0..*" Favorite    : propertyID
+Property "1" -- "0..*" Review      : propertyID
+
+RentalApplication "1" -- "0..*" ApplicationDocument : contains
+RentalApplication "1" -- "0..1" Rental : becomes
+
+@enduml

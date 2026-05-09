@@ -1,0 +1,135 @@
+@startuml SD-Registration
+title User Registration & Login Flow
+
+actor Tenant
+participant "API Gateway\n:8080" as GW
+participant "user-auth-service\n:8081" as AUTH
+database "MySQL" as DB
+participant "engagement-svc\n:8084" as ENG
+queue "Kafka\nuser-events" as KAFKA
+
+== Registration ==
+Tenant -> GW: POST /api/auth/register {fullName, email, password, role}
+GW -> AUTH: forward request (no JWT required)
+AUTH -> AUTH: validate input
+AUTH -> DB: check email uniqueness
+AUTH -> AUTH: BCrypt.hash(password)
+AUTH -> DB: INSERT into Users
+AUTH -> KAFKA: publish UserRegistered event
+KAFKA -> ENG: consume UserRegistered
+ENG -> DB: INSERT into Notifications (welcome)
+AUTH --> GW: 200 OK {message}
+GW --> Tenant: 200 OK
+
+== Login ==
+Tenant -> GW: POST /api/auth/login {email, password}
+GW -> AUTH: forward
+AUTH -> DB: SELECT user by email
+AUTH -> AUTH: BCrypt.verify(password, hash)
+AUTH -> AUTH: JWT.generate(userId, email, role)
+AUTH --> GW: 200 OK {token, user}
+GW --> Tenant: 200 OK {token, user}
+note right Tenant: Store token in localStorage
+
+@enduml
+
+@startuml SD-PropertyFlow
+title Property Submission & Admin Approval
+
+actor Landlord
+actor Admin
+participant "API Gateway" as GW
+participant "property-service\n:8082" as PROP
+participant "engagement-svc\n:8084" as ENG
+queue "Kafka\nproperty-events" as KAFKA
+database MySQL as DB
+
+== Landlord creates property ==
+Landlord -> GW: POST /api/properties {title, price, ...}\n+ Bearer token
+GW -> GW: validate JWT
+GW -> PROP: forward with X-User-Id header
+PROP -> DB: INSERT Property (isApproved=false)
+PROP -> KAFKA: publish PropertySubmitted
+KAFKA -> ENG: consume PropertySubmitted
+ENG -> DB: INSERT Notification for Admin
+PROP --> GW: 200 PropertyDto
+GW --> Landlord: 200 OK
+
+== Admin approves property ==
+Admin -> GW: PUT /api/properties/{id}/approve + Bearer token
+GW -> GW: validate JWT, check role=Admin
+GW -> PROP: forward
+PROP -> DB: UPDATE Property SET isApproved=true
+PROP -> KAFKA: publish PropertyApproved (targetUserId=landlordId)
+KAFKA -> ENG: consume PropertyApproved
+ENG -> DB: INSERT Notification for Landlord
+PROP --> GW: 200 PropertyDto
+GW --> Admin: 200 OK
+
+@enduml
+
+@startuml SD-VisitRequest
+title Visit Request Flow
+
+actor Tenant
+actor Landlord
+participant "API Gateway" as GW
+participant "rental-booking-service\n:8083" as BOOK
+participant "engagement-svc\n:8084" as ENG
+queue "Kafka\nbooking-events" as KAFKA
+database MySQL as DB
+
+Tenant -> GW: POST /api/visits {propertyID, requestedDate} + Bearer
+GW -> BOOK: forward
+BOOK -> DB: INSERT VisitRequest (status=Pending)
+BOOK -> KAFKA: VisitRequestCreated (targetUserId=landlordId)
+KAFKA -> ENG: consume
+ENG -> DB: INSERT Notification for Landlord
+BOOK --> GW: 200 VisitRequestDto
+GW --> Tenant: 200 OK
+
+Landlord -> GW: PUT /api/visits/{id}/accept + Bearer
+GW -> BOOK: forward
+BOOK -> DB: UPDATE status=Accepted
+BOOK -> KAFKA: VisitRequestAccepted (targetUserId=tenantId)
+KAFKA -> ENG: consume
+ENG -> DB: INSERT Notification for Tenant
+BOOK --> Landlord: 200 OK
+
+@enduml
+
+@startuml SD-ApplicationFlow
+title Rental Application → Accepted → Rental Created
+
+actor Tenant
+actor Landlord
+participant "API Gateway" as GW
+participant "rental-booking-service\n:8083" as BOOK
+participant "property-service\n:8082" as PROP
+participant "engagement-svc\n:8084" as ENG
+queue "Kafka\nbooking-events" as KAFKA
+database MySQL as DB
+
+== Submit Application ==
+Tenant -> GW: POST /api/applications {propertyID, startDate, endDate}
+GW -> BOOK: forward
+BOOK -> DB: INSERT RentalApplication (status=Pending)
+BOOK -> KAFKA: RentalApplicationSubmitted
+KAFKA -> ENG: consume → Notification for Landlord
+BOOK --> Tenant: 200 ApplicationDto
+
+== Accept Application ==
+Landlord -> GW: PUT /api/applications/{id}/accept
+GW -> BOOK: forward
+BOOK -> DB: UPDATE status=Accepted
+BOOK -> DB: INSERT Rental record
+BOOK -> KAFKA: ApplicationAccepted (targetUserId=tenantId, relatedId=propertyId)
+BOOK -> KAFKA: RentalCreated
+
+KAFKA -> ENG: ApplicationAccepted → Notification for Tenant
+KAFKA -> PROP: ApplicationAccepted → UPDATE Property.rentalStatus=Rented
+KAFKA -> ENG: RentalCreated → Notifications for both parties
+
+BOOK --> Landlord: 200 ApplicationDto
+
+@enduml
