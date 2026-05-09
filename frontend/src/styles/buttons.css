@@ -1,0 +1,16 @@
+.btn-primary {
+  background: var(--jellybean-blue);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: var(--weldon-blue);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
