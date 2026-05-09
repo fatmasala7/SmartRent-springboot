@@ -1,4 +1,4 @@
-# SmartRent - Corrected Project
+# SmartRent - Project
 
 ## Run the project
 
